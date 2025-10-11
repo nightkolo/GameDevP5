@@ -1,20 +1,18 @@
 class Enemy {
-  constructor(px = 200.0,
-    py = 200.0,
-    h = 10,
-    player,
-    followPlayer,
-    bulletDir) {
-    this.x = px;
-    this.y = py;
-    this.health = h;
-    this.size = this.getSize();
-
-    this.player = player; // type: Player
+  constructor({ x = 200, y = 200, health = 10, player, followPlayer = false, bulletDir = { x: 0, y: -1 } } = {}){
+    this.x = x;
+    this.y = y;
+    this.health = health;
+    this.player = player;
     this.followPlayer = followPlayer;
     this.bulletDir = bulletDir;
 
+    this.size = this.getSize();
     this.knockbackStrength = 3.0;
+  }
+  // Factory methods for common types
+  static createFollower(player, x, y) {
+    return new Enemy({ x, y, player, followPlayer: true });
   }
   moveTowardPlayer() {
     if (this.followPlayer) {

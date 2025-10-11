@@ -8,6 +8,7 @@ let enemies = [];
 
 // Game Loop
 let rounds = 1;
+let difficulty = 0;
 
 // Debug
 let noShoot = true;
@@ -17,7 +18,14 @@ function setup() {
 
   p = new Player();
 
-  e1 = new Enemy(width / 2, height / 2, 10, p, false, curBulletDir);
+  e1 = new Enemy({
+    x: width / 2,
+    y: height / 2,
+    health: 10,
+    player: p,
+    followPlayer: false,
+  });
+  // e1 = new Enemy(width / 2, height / 2, 10, p, false, curBulletDir);
   enemies.push(e1);
 }
 
@@ -33,24 +41,43 @@ let firingSpdFactor = 0.125 / 2.0;
 
 function spawnEnemies(onRound = rounds) {
   let healthMin = 3;
+  let healthFactor = 20.0;
   let enemySpawnsMin = 3;
   let enemySpawnsFactor = 3;
+  // if (onRound > 5 && onRound <= 10) {
+  //   healthMin = 3;
+  //   enemySpawnsMin = 4;
+  //   enemySpawnsFactor = 4;
+  // } else if (onRound > 10 && onRound <= 15) {
+  //   healthMin = 5;
+  //   enemySpawnsMin = 6;
+  //   enemySpawnsFactor = 6;
+  // } else if (onRound > 15 && onRound <= 20) {
+  //   healthMin = 6;
+  //   enemySpawnsMin = 7;
+  //   enemySpawnsFactor = 4;
+  // } else if (onRound > 20) {
+  //   healthMin = 7;
+  //   enemySpawnsMin = 5;
+  //   enemySpawnsFactor = 4;
+  // }
 
   let noOfEnemies = enemySpawnsMin + floor(random() * enemySpawnsFactor);
 
   for (let i = 0; i < noOfEnemies; i++) {
     let spawnX = random() * width;
     let spawnY = random() * height;
-    let health = healthMin + floor(random() * 20);
+    let health = healthMin + floor(random() * healthFactor);
 
-    let newEnemy = new Enemy(
-      spawnX, 
-      spawnY, 
-      health, 
-      p, 
-      true,
-      curBulletDir
-    );
+    let newEnemy = new Enemy({
+      x: spawnX,
+      y: spawnY,
+      health: health,
+      player: p,
+      followPlayer: true,
+      bulletDir: curBulletDir,
+    });
+
     enemies.push(newEnemy);
   }
 }
@@ -100,7 +127,6 @@ function draw() {
 
         if (e.hasDied()) {
           const index = enemies.indexOf(e);
-
           if (index > -1) {
             enemies.splice(index, 1);
           }
