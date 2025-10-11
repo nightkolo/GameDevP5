@@ -3,7 +3,8 @@ const canSize = { x: 900, y: 750 }; // 6:5
 // Objects
 let p;
 let e1;
-let bullets = [];
+let playerBullets = [];
+let enemyBullets = [];
 let enemies = [];
 
 // Game Loop
@@ -23,7 +24,8 @@ function setup() {
     y: height / 2,
     health: 10,
     player: p,
-    followPlayer: false,
+    canFire: true
+    // followPlayer: false,
   });
   // e1 = new Enemy(width / 2, height / 2, 10, p, false, curBulletDir);
   enemies.push(e1);
@@ -74,8 +76,9 @@ function spawnEnemies(onRound = rounds) {
       y: spawnY,
       health: health,
       player: p,
-      followPlayer: true,
+      // followPlayer: true,
       bulletDir: curBulletDir,
+      canFire: true
     });
 
     enemies.push(newEnemy);
@@ -87,6 +90,61 @@ function enemiesDefeated() {
   return enemies.length == 0;
 }
 
+
+
+function handlePlayerBullet(b){
+  let enemyHasDied = false;
+
+  // Enemy detection
+  enemies.forEach((e) => {
+    
+    if (GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size/2.0)) {
+      e.hit();
+      
+      if (e.hasDied()) {
+        const index = enemies.indexOf(e);
+        if (index > -1) {
+          enemies.splice(index, 1);
+        }
+      }
+      
+      enemyHasDied = true;
+      }
+    });
+    
+  b.update();
+  b.show();
+
+  return !enemyHasDied;
+} 
+
+let enemyFiringSpd = 1.25;
+let enemyBulletSpawnTime = 0.0;
+
+function handleEnemies(){
+
+  // Generates enemies
+  enemies.forEach((e) => {
+    
+    // if the Enemy's canFire is true
+    if (e.canFire) {
+      if (millis() - enemyBulletSpawnTime > enemyFiringSpd * 1000.0) {
+        let spd = 4.0;
+
+        print(`${e} has fired.`);  
+        enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd));
+        // enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd));
+        // enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd));
+        // enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd));
+
+        enemyBulletSpawnTime = millis();
+      }
+    }
+    
+    e.update();
+    e.show();
+  });
+}
 function draw() {
   background(0);
   noCursor();
@@ -98,47 +156,27 @@ function draw() {
     gotoNextRound();
   }
 
-  // Spawn Bullets
+  // Spawn playerBullets
   if (!noShoot) {
     if (millis() - lastSpawnTime > firingSpdFactor * 1000.0) {
-      bullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y));
+      playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y));
       lastSpawnTime = millis();
     }
   }
-
-  // Generate enemies
-  enemies.forEach((e) => {
-    e.update();
-    e.show();
-
-    e.isInsidePlayer();
-  });
-
-  // Handle bullets
-  bullets = bullets.filter((b) => {
+  // Handle playerBullets
+  playerBullets = playerBullets.filter(handlePlayerBullet);
+  
+  // Handle enemyBullets
+  enemyBullets = enemyBullets.filter((b) => { // 
     b.update();
     b.show();
 
-    let hasDied = false;
-    // Enemy detection
-    enemies.forEach((e) => {
-      if (b.hitsCircle(e.x, e.y, e.size / 2.0, e.size)) {
-        e.hit();
-
-        if (e.hasDied()) {
-          const index = enemies.indexOf(e);
-          if (index > -1) {
-            enemies.splice(index, 1);
-          }
-        }
-
-        hasDied = true;
-      }
-    });
-
-    return !hasDied;
-    // return !hit && !(b.offScreen());
+    return !(b.offScreen());
   });
+
+  // print(enemies);
+  // Generate enemies
+  handleEnemies();
 
   // player
   p.update();

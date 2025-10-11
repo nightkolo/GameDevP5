@@ -19,13 +19,4 @@ class Bullet {
   offScreen(){
     return (this.x > canSize.x || this.x < 0.0 || this.y > canSize.y || this.y < 0.0);
   }
-  // TODO move hitsCircle to utils.js
-  hitsCircle(cx, cy, r) {
-    let dx = this.x - cx;
-    let dy = this.y - cy;
-    let distance = sqrt(dx * dx + dy * dy);
-
-    // r is the radius of target circle, this.size/2 is bullet radius
-    return distance < r + this.size/2;
-  }
 }
