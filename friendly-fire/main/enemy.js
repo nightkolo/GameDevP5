@@ -48,25 +48,26 @@ class Enemy {
     return distance < (r1 + r2);
   }
   insidePlayer(){
-    return this.circleCollision(this.player.x,
+// print(this.player.x, this.player.y, this.player.size/2)
+// print(this.x, this.y, this.getSize()/2)
+
+
+    let hit = this.circleCollision(
+      this.player.x,
       this.player.y,
       this.player.size / 2.0,
       this.x,
       this.y,
-      this.size / 2.0)
-    // this is gonna take a while...
-    // TODO make Enemy detect if entered/inside Player
-    // return this.hitsCircle(this.player.x, this.player.y, this.player.size / 2.0);
-  }
-  // TODO move hitsCircle to utils.js
-  hitsCircle(cx, cy, r) {
-    let dx = this.x - cx;
-    let dy = this.y - cy;
-    let distance = sqrt(dx * dx + dy * dy);
+      this.getSize() / 2.0
+    );
+    if (hit) {
+      print(`Enemy at (${this.x}, ${this.y}) is touching Player`);
+    }
 
-    // r is the radius of target circle, this.size/2 is bullet radius
-    return distance < r + this.size/2;
+    return hit;
   }
+
+  
   hit(){
     this.health--;
   }

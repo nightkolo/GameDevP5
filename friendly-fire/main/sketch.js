@@ -2,8 +2,6 @@ const canSize = {x: 900, y: 750} // 6:5
 
 let p;
 let e1;
-let e2;
-let e3;
 let bullets = [];
 let enemies = [];
 
@@ -14,12 +12,6 @@ function setup() {
 
   e1 = new Enemy(width/2, height/2, 10, p);
   enemies.push(e1);
-  
-  // e2 = new Enemy(400.0, 400.0);
-  // enemies.push(e2);
-  
-  // e3 = new Enemy(600.0, 600.0);
-  // enemies.push(e3);
 }
 
 let lastSpawnTime = 0.0;
@@ -61,29 +53,32 @@ let noShoot = true;
 function draw() {
   background(0);
   noCursor();
+
+  rectMode(CENTER);
   
   // Enemies defeated
   if (enemies.length == 0){
     gotoNextRound();
   }
-
   // Spawn Bullets
   if (!noShoot){
     if (millis() - lastSpawnTime > firingSpdFactor * 1000.0) {
       bullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y));
       lastSpawnTime = millis();
     }
-
   }
+  
 
-  rectMode(CENTER);
+  // print(e1.insidePlayer());
+  // print(`e1.insidePlayer: ${e1.insidePlayer()}`)
 
   // Generate enemies
   enemies.forEach(e => {
     e.update();
     e.show();
+    e.insidePlayer();
 
-    print(`hitsCircle: ${e.insidePlayer()}`);
+    // print(`hitsCircle: ${e.insidePlayer()}`);
   })
 
 
@@ -93,7 +88,6 @@ function draw() {
     b.show();
 
     let hit = false;
-
     
     // Enemy detection
     enemies.forEach(e => {
