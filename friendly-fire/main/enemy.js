@@ -1,5 +1,10 @@
 class Enemy {
-  constructor(px = 200.0, py = 200.0, h = 10, player, followPlayer){
+  constructor(px = 200.0,
+    py = 200.0,
+    h = 10,
+    player,
+    followPlayer,
+    bulletDir) {
     this.x = px;
     this.y = py;
     this.health = h;
@@ -7,31 +12,16 @@ class Enemy {
 
     this.player = player; // type: Player
     this.followPlayer = followPlayer;
-  }
-  getSize(){
-    return 80.0 + (this.health * 5.0);
-  }
-  update(){
-    this.size = this.getSize();
+    this.bulletDir = bulletDir;
 
-    this.moveTowardPlayer();
-
-    // TODO follow player....
-    // print(this.player.x, this.player.y);
-  }
-  show(){
-    rectMode(CENTER);
-    circle(this.x, this.y, this.size);
-    text(`${this.health}`, this.x, this.y);
-    textSize(40.0);
-    textAlign(CENTER);
+    this.knockbackStrength = 3.0;
   }
   moveTowardPlayer() {
-    if (this.followPlayer){
+    if (this.followPlayer) {
       let dx = this.player.x - this.x;
       let dy = this.player.y - this.y;
       let dist = sqrt(dx * dx + dy * dy);
-  
+
       if (dist > 0) {
         dx /= dist;
         dy /= dist;
@@ -41,18 +31,24 @@ class Enemy {
       }
     }
   }
-  circleCollision(x1, y1, r1, x2, y2, r2) {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < (r1 + r2);
+  update() {
+    this.size = this.getSize();
+
+    this.moveTowardPlayer();
   }
-  insidePlayer(){
-// print(this.player.x, this.player.y, this.player.size/2)
-// print(this.x, this.y, this.getSize()/2)
-
-
-    let hit = this.circleCollision(
+  show() {
+    rectMode(CENTER);
+    circle(this.x, this.y, this.size);
+    text(`${this.health}`, this.x, this.y);
+    textSize(40.0);
+    textAlign(CENTER);
+  }
+  getSize() {
+    return 80.0 + this.health * 5.0;
+  }
+  isInsidePlayer() {
+    // experimental
+    return GameMath.circleCollision(
       this.player.x,
       this.player.y,
       this.player.size / 2.0,
@@ -60,21 +56,20 @@ class Enemy {
       this.y,
       this.getSize() / 2.0
     );
-    if (hit) {
-      print(`Enemy at (${this.x}, ${this.y}) is touching Player`);
-    }
-
-    return hit;
   }
-
-  
-  hit(){
+  hit() {
     this.health--;
+    this.knockback();
   }
-  hasDied(){
-    return (this.health < 1);
+  knockback(){
+    this.x += this.knockbackStrength * this.bulletDir.x;
+    this.y += this.knockbackStrength * this.bulletDir.y;
+
   }
-  toString(){
-    return `${this.health}, ${this.x}, ${this.y}`
+  hasDied() {
+    return this.health < 1;
+  }
+  toString() {
+    return `${this.health}, ${this.x}, ${this.y}`;
   }
 }
