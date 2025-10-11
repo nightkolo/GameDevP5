@@ -13,56 +13,26 @@ let difficulty = 0;
 
 // Debug
 let noShoot = true;
-
-function setup() {
-  createCanvas(canSize.x, canSize.y);
-
-  p = new Player();
-
-  e1 = new Enemy({
-    x: width / 2,
-    y: height / 2,
-    health: 10,
-    player: p,
-    canFire: true
-    // followPlayer: false,
-  });
-  // e1 = new Enemy(width / 2, height / 2, 10, p, false, curBulletDir);
-  enemies.push(e1);
-}
+let curBulletDir = {
+  x: 0,
+  y: -1, // default: up
+};
 
 function gotoNextRound() {
   rounds++;
   print(rounds);
 
-  spawnEnemies(rounds);
+  spawnEnemies();
 }
 
 let lastSpawnTime = 0.0;
 let firingSpdFactor = 0.125 / 2.0;
 
-function spawnEnemies(onRound = rounds) {
+function spawnEnemies() {
   let healthMin = 3;
   let healthFactor = 20.0;
   let enemySpawnsMin = 3;
   let enemySpawnsFactor = 3;
-  // if (onRound > 5 && onRound <= 10) {
-  //   healthMin = 3;
-  //   enemySpawnsMin = 4;
-  //   enemySpawnsFactor = 4;
-  // } else if (onRound > 10 && onRound <= 15) {
-  //   healthMin = 5;
-  //   enemySpawnsMin = 6;
-  //   enemySpawnsFactor = 6;
-  // } else if (onRound > 15 && onRound <= 20) {
-  //   healthMin = 6;
-  //   enemySpawnsMin = 7;
-  //   enemySpawnsFactor = 4;
-  // } else if (onRound > 20) {
-  //   healthMin = 7;
-  //   enemySpawnsMin = 5;
-  //   enemySpawnsFactor = 4;
-  // }
 
   let noOfEnemies = enemySpawnsMin + floor(random() * enemySpawnsFactor);
 
@@ -76,83 +46,84 @@ function spawnEnemies(onRound = rounds) {
       y: spawnY,
       health: health,
       player: p,
-      // followPlayer: true,
       bulletDir: curBulletDir,
-      canFire: true
+      canFire: random() < 1 / 4,
     });
 
     enemies.push(newEnemy);
   }
 }
 
-function enemiesDefeated() {
-  // experimental
-  return enemies.length == 0;
-}
-
-
-
-function handlePlayerBullet(b){
+function handlePlayerBullet(b) {
   let enemyHasDied = false;
 
   // Enemy detection
   enemies.forEach((e) => {
-    
-    if (GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size/2.0)) {
+    if (GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size / 2.0)) {
       e.hit();
-      
+
       if (e.hasDied()) {
         const index = enemies.indexOf(e);
         if (index > -1) {
           enemies.splice(index, 1);
         }
       }
-      
+
       enemyHasDied = true;
-      }
-    });
-    
+    }
+  });
+
   b.update();
   b.show();
 
-  return !enemyHasDied;
-} 
+  // Keep bullet only if it hasn't hit anything AND isn't offscreen
+  return !enemyHasDied && !b.offScreen();
+}
 
-let enemyFiringSpd = 1.25;
-let enemyBulletSpawnTime = 0.0;
-
-function handleEnemies(){
-
+function handleEnemies() {
   // Generates enemies
   enemies.forEach((e) => {
-    
-    // if the Enemy's canFire is true
-    if (e.canFire) {
-      if (millis() - enemyBulletSpawnTime > enemyFiringSpd * 1000.0) {
-        let spd = 4.0;
+    if (e.tryFire()) {
+      let spd = 4.0;
+      let size = 75.0;
 
-        print(`${e} has fired.`);  
-        enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd));
-        // enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd));
-        // enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd));
-        // enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd));
+      enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
+      enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
 
-        enemyBulletSpawnTime = millis();
-      }
+      enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
+      enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
+
+      // print(`${e} has fired.`);
     }
-    
+
     e.update();
     e.show();
   });
 }
+
+function setup() {
+  createCanvas(canSize.x, canSize.y);
+
+  p = new Player();
+
+  e1 = new Enemy({
+    x: width / 2,
+    y: height / 2,
+    health: 10,
+    player: p,
+    canFire: true,
+  });
+  enemies.push(e1);
+}
+
 function draw() {
-  background(0);
+  background(125);
   noCursor();
 
   rectMode(CENTER);
 
   // Enemies defeated
-  if (enemiesDefeated()) {
+  if (enemies.length == 0) {
     gotoNextRound();
   }
 
@@ -163,19 +134,18 @@ function draw() {
       lastSpawnTime = millis();
     }
   }
+
   // Handle playerBullets
   playerBullets = playerBullets.filter(handlePlayerBullet);
-  
+
   // Handle enemyBullets
-  enemyBullets = enemyBullets.filter((b) => { // 
+  enemyBullets = enemyBullets.filter((b) => {
     b.update();
     b.show();
 
-    return !(b.offScreen());
+    return !b.offScreen();
   });
 
-  // print(enemies);
-  // Generate enemies
   handleEnemies();
 
   // player
@@ -183,12 +153,6 @@ function draw() {
   p.show();
 }
 
-let curBulletDir = {
-  x: 0,
-  y: -1, // default: up
-};
-
-// woops
 function mousePressed() {
   noShoot = !noShoot;
 }

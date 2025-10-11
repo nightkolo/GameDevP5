@@ -3,10 +3,9 @@ class Enemy {
     x = 200,
     y = 200,
     health = 10,
-    player,
-    // followPlayer = false,
     bulletDir = { x: 0, y: -1 },
-    canFire = false
+    canFire = false,
+    player // Player instance
   } = {}){
     // Pos
     this.x = x;
@@ -22,16 +21,23 @@ class Enemy {
     this.canFire = canFire;
 
     // Misc
-    this.lastSpawnTime = 0.0;
 
-    // this.followPlayer = followPlayer;
+    // Add per-enemy firing timers
+    this.lastShotTime = 0;
+    this.firingCooldown = 1.25; // ms
   }
-  // Factory methods for common types
-  // static createFollower(player, x, y) {
-  //   return new Enemy({ x, y, player, followPlayer: true });
-  // }
+  tryFire() {
+    if (!this.canFire) return false;
+
+    if (millis() - this.lastShotTime > this.firingCooldown * 1000) {
+      this.lastShotTime = millis();
+      return true; // ready to fire
+    }
+    return false;
+  }
   moveTowardPlayer() {
-    // if (this.followPlayer) {
+    if (this.player == null) return;
+
     let dx = this.player.x - this.x;
     let dy = this.player.y - this.y;
     let dist = sqrt(dx * dx + dy * dy);
@@ -39,40 +45,40 @@ class Enemy {
     if (dist > 0) {
       dx /= dist;
       dy /= dist;
-      let speed = 0.5;
+      let speed = 0.25;
       this.x += dx * speed;
       this.y += dy * speed;
     }
-    // }
-  }
-  fire(){
-    // req sketch.js
-    // let firingSpd = 0.5;
-    
-    // if (millis() - lastSpawnTime > firingSpd * 1000.0) {
-    //   print(this, "Shoot");
-    //   enemyBullets.push(new Bullet(this.x, this.y));
-    //   lastSpawnTime = millis();
-    //   print(enemyBullets);
-    // }
   }
   update() {
     this.size = this.getSize();
 
     this.moveTowardPlayer();
-    this.fire();
   }
   show() {
     rectMode(CENTER);
+
+    if (this.canFire){
+      fill(255, 0, 0)
+    } else {
+      fill(255, 255, 255)
+    }
+
     circle(this.x, this.y, this.size);
-    text(`${this.health}`, this.x, this.y);
+
+    fill(255);
+    strokeWeight(5);
+    stroke(0)
     textSize(40.0);
     textAlign(CENTER);
+
+    text(`${this.health}`, this.x, this.y);
   }
   getSize() {
     return 80.0 + this.health * 5.0;
   }
   isInsidePlayer() {
+    if (this.player == null) return;
     // experimental
     return GameMath.circleCollision(
       this.player.x,

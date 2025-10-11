@@ -1,3 +1,5 @@
+// Under construction
+
 class Player {
   constructor(){
     this.x = 0.0;
@@ -21,6 +23,7 @@ class Player {
     this.y = mouseY;
   }
   show(){
+    fill(255, 255, 200);
     circle(this.x, this.y, this.size);
   }
 }
