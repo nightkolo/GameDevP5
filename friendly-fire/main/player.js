@@ -7,6 +7,9 @@ class Player {
     this.size = 50.0
     this.enemies = [];
   }
+  hit(){
+    print("Ouch!");
+  }
   insideAnEnemy(){
     // TODO move enemy detection logic here
     // return GameMath.circleCollision(

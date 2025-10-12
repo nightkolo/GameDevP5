@@ -1,4 +1,4 @@
-const canSize = { x: 900, y: 750 }; // 6:5
+const canSize = { x: 900, y: 720 }; // 6:5
 
 // Objects
 let p;
@@ -26,7 +26,7 @@ function gotoNextRound() {
 }
 
 let lastSpawnTime = 0.0;
-let firingSpdFactor = 0.125 / 2.0;
+let firingSpdFactor = 0.0625;
 
 function spawnEnemies() {
   let healthMin = 3;
@@ -81,6 +81,8 @@ function handlePlayerBullet(b) {
 }
 
 function handleEnemies() {
+  print(enemyBullets);
+
   // Generates enemies
   enemies.forEach((e) => {
     if (e.tryFire()) {
@@ -93,6 +95,8 @@ function handleEnemies() {
       enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
 
+
+      
       // print(`${e} has fired.`);
     }
 
@@ -117,8 +121,10 @@ function setup() {
 }
 
 function draw() {
-  background(125);
+  background("#d1d166ff");
   noCursor();
+
+  frameRate(60);
 
   rectMode(CENTER);
 
@@ -138,12 +144,36 @@ function draw() {
   // Handle playerBullets
   playerBullets = playerBullets.filter(handlePlayerBullet);
 
+  
   // Handle enemyBullets
-  enemyBullets = enemyBullets.filter((b) => {
+  // enemyBullets = enemyBullets.filter((b) => { // cause issues
+  enemyBullets.forEach((b) => {
+    // YAYYYYYY
+    let playerIsHit = false; // Experimental
+
     b.update();
     b.show();
 
-    return !b.offScreen();
+    if (!b.alive){
+      const index = enemyBullets.indexOf(b);
+
+      if (index > -1) {
+        enemyBullets.splice(index, 1);
+      }
+    }
+
+    if (GameMath.circleCollision(p.x, p.y, p.size / 2.0, b.x, b.y, b.size / 2.0)){
+
+      p.hit();
+
+      const index = enemyBullets.indexOf(b);
+
+      if (index > -1) {
+        enemyBullets.splice(index, 1);
+      }
+
+      playerIsHit = true;
+    }
   });
 
   handleEnemies();
