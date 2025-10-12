@@ -1,9 +1,5 @@
 class Bullet {
   constructor(px, py, dirX = 0, dirY = -1, spd = 10.0, size = 25.0){
-    this.dir = { // Experimental
-      x: 0,
-      y: 0
-    }
     this.dirX = dirX;
     this.dirY = dirY;
     this.x = px;

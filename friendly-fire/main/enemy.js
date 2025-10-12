@@ -1,13 +1,13 @@
 class Enemy {
-  constructor({ 
+  constructor({
     x = 200,
     y = 200,
     health = 10,
     bulletDir = { x: 0, y: -1 },
     canFire = false,
-    player // Player instance
-  } = {}){
-    // Pos
+    player
+  } = {}) {
+
     this.x = x;
     this.y = y;
     // Stats
@@ -17,23 +17,25 @@ class Enemy {
     this.player = player;
     this.bulletDir = bulletDir;
 
+    // TODO better variable names
+
     // Type
-    this.canFire = canFire;
-
-    // Misc
-
-    // Add per-enemy firing timers
+    this.canFire = false;
+    
+    // Misc.
+    this.storeCanFire = canFire;
     this.lastShotTime = 0;
-    this.firingCooldown = 1.25; // ms
-  }
-  tryFire() {
-    if (!this.canFire) return false;
+    this.firingCooldown = 1.25;
+    this.hasSpawned = false;
 
-    if (millis() - this.lastShotTime > this.firingCooldown * 1000) {
-      this.lastShotTime = millis();
-      return true; // ready to fire
-    }
-    return false;
+    this.spawned();
+  }
+  spawned() {
+    setTimeout(() => this.isReady(), 1000.0);
+  }
+  isReady() {
+    this.hasSpawned = true;
+    this.canFire = this.storeCanFire;
   }
   moveTowardPlayer() {
     if (this.player == null) return;
@@ -53,33 +55,43 @@ class Enemy {
   update() {
     this.size = this.getSize();
 
+    if (!this.hasSpawned) return;
+
     this.moveTowardPlayer();
   }
   show() {
     rectMode(CENTER);
 
-    if (this.canFire){
-      fill(255, 0, 0)
+    if (this.storeCanFire) {
+      fill(255, 0, 0);
     } else {
-      fill(255, 255, 255)
+      fill(255, 255, 255);
     }
 
     circle(this.x, this.y, this.size);
 
     fill(255);
     strokeWeight(5);
-    stroke(0)
+    stroke(0);
     textSize(40.0);
     textAlign(CENTER);
 
     text(`${this.health}`, this.x, this.y);
   }
+  tryFire() {
+    if (!this.canFire) return false;
+
+    if (millis() - this.lastShotTime > this.firingCooldown * 1000) {
+      this.lastShotTime = millis();
+      return true; // ready to fire
+    }
+    return false;
+  }
   getSize() {
     return 80.0 + this.health * 5.0;
   }
-  isInsidePlayer() {
+  isInsidePlayer() {// experimental
     if (this.player == null) return;
-    // experimental
     return GameMath.circleCollision(
       this.player.x,
       this.player.y,
@@ -93,7 +105,7 @@ class Enemy {
     this.health--;
     this.knockback();
   }
-  knockback(){
+  knockback() {
     let strength = 4.0;
 
     this.x += strength * this.bulletDir.x;

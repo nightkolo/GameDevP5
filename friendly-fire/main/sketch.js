@@ -1,4 +1,4 @@
-const canSize = { x: 900, y: 720 }; // 6:5
+const canSize = { x: 900, y: 720 }; // 5:4
 
 // Objects
 let p;
@@ -48,12 +48,39 @@ function spawnEnemies() {
       player: p,
       bulletDir: curBulletDir,
       canFire: random() < 1 / 4,
+      
     });
 
     enemies.push(newEnemy);
   }
 }
 
+function handleEnemyBullet(b){
+  let playerIsHit = false; // Experimental
+
+  b.update();
+  b.show();
+
+  if (!b.alive){
+    const index = enemyBullets.indexOf(b);
+
+    if (index > -1) {
+      enemyBullets.splice(index, 1);
+    }
+  }
+
+  if (GameMath.circleCollision(b.x, b.y, b.size / 2.0, p.x, p.y, p.size / 2.0)){
+    p.hit();
+
+    const index = enemyBullets.indexOf(b);
+
+    if (index > -1) {
+      enemyBullets.splice(index, 1);
+    }
+
+    playerIsHit = true;
+  }
+}
 function handlePlayerBullet(b) {
   let enemyHasDied = false;
 
@@ -76,13 +103,10 @@ function handlePlayerBullet(b) {
   b.update();
   b.show();
 
-  // Keep bullet only if it hasn't hit anything AND isn't offscreen
   return !enemyHasDied && !b.offScreen();
 }
 
 function handleEnemies() {
-  print(enemyBullets);
-
   // Generates enemies
   enemies.forEach((e) => {
     if (e.tryFire()) {
@@ -91,13 +115,8 @@ function handleEnemies() {
 
       enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
-
       enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
-
-
-      
-      // print(`${e} has fired.`);
     }
 
     e.update();
@@ -115,7 +134,8 @@ function setup() {
     y: height / 2,
     health: 10,
     player: p,
-    canFire: true,
+    canFire: false,
+    bulletDir: curBulletDir
   });
   enemies.push(e1);
 }
@@ -144,48 +164,26 @@ function draw() {
   // Handle playerBullets
   playerBullets = playerBullets.filter(handlePlayerBullet);
 
-  
   // Handle enemyBullets
   // enemyBullets = enemyBullets.filter((b) => { // cause issues
-  enemyBullets.forEach((b) => {
-    // YAYYYYYY
-    let playerIsHit = false; // Experimental
-
-    b.update();
-    b.show();
-
-    if (!b.alive){
-      const index = enemyBullets.indexOf(b);
-
-      if (index > -1) {
-        enemyBullets.splice(index, 1);
-      }
-    }
-
-    if (GameMath.circleCollision(p.x, p.y, p.size / 2.0, b.x, b.y, b.size / 2.0)){
-
-      p.hit();
-
-      const index = enemyBullets.indexOf(b);
-
-      if (index > -1) {
-        enemyBullets.splice(index, 1);
-      }
-
-      playerIsHit = true;
-    }
-  });
+  enemyBullets.forEach(handleEnemyBullet);
 
   handleEnemies();
 
-  // player
-  p.update();
-  p.show();
+  // TODO player death incomplete
+  if (p.alive) {
+    p.update();
+    p.show();
+  }
 }
 
 function mousePressed() {
   noShoot = !noShoot;
+  // noShoot = false;
 }
+// function mouseReleased() {
+//   noShoot = true;
+// }
 
 function keyPressed(event) {
   if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") {
