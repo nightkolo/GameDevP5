@@ -39,6 +39,8 @@ class Player {
   }
   show(){
     fill(255, 255, 200);
+
+    // TODO make into square
     circle(this.x, this.y, this.size);
 
     fill(255);

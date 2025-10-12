@@ -5,9 +5,10 @@ class Enemy {
     health = 10,
     bulletDir = { x: 0, y: -1 },
     canFire = false,
-    player
+    exploder = false,
+    // diagonalFiring = false, // Experimental
+    player,
   } = {}) {
-
     this.x = x;
     this.y = y;
     // Stats
@@ -20,8 +21,12 @@ class Enemy {
     // TODO better variable names
 
     // Type
+    // TODO Turn Type into an enum of EnemyTypes
     this.canFire = false;
-    
+    this.exploder = exploder;
+    this.reflector = false; // experimental
+    // this.diagonalFiring = diagonalFiring;
+
     // Misc.
     this.storeCanFire = canFire;
     this.lastShotTime = 0;
@@ -64,6 +69,8 @@ class Enemy {
 
     if (this.storeCanFire) {
       fill(255, 0, 0);
+    } else if (this.exploder) {
+      fill(255, 255, 0);
     } else {
       fill(255, 255, 255);
     }
@@ -90,7 +97,8 @@ class Enemy {
   getSize() {
     return 80.0 + this.health * 5.0;
   }
-  isInsidePlayer() {// experimental
+  isInsidePlayer() {
+    // experimental
     if (this.player == null) return;
     return GameMath.circleCollision(
       this.player.x,
@@ -106,6 +114,8 @@ class Enemy {
     this.knockback();
   }
   knockback() {
+    // TODO isssue when player changes bulletDir, store the bulletDir data in the Bullet itself somehow
+    // not gonna lie... I do kinda miss using game engines like godot, that would've been easy to implement
     let strength = 4.0;
 
     this.x += strength * this.bulletDir.x;

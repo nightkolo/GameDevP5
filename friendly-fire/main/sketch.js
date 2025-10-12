@@ -47,21 +47,21 @@ function spawnEnemies() {
       health: health,
       player: p,
       bulletDir: curBulletDir,
-      canFire: random() < 1 / 4,
-      
+      exploder: random() < 1 / 4,
+      diagonalFiring: random() < 1 / 2,
     });
 
     enemies.push(newEnemy);
   }
 }
 
-function handleEnemyBullet(b){
+function handleEnemyBullet(b) {
   let playerIsHit = false; // Experimental
 
   b.update();
   b.show();
 
-  if (!b.alive){
+  if (!b.alive) {
     const index = enemyBullets.indexOf(b);
 
     if (index > -1) {
@@ -69,7 +69,9 @@ function handleEnemyBullet(b){
     }
   }
 
-  if (GameMath.circleCollision(b.x, b.y, b.size / 2.0, p.x, p.y, p.size / 2.0)){
+  if (
+    GameMath.circleCollision(b.x, b.y, b.size / 2.0, p.x, p.y, p.size / 2.0)
+  ) {
     p.hit();
 
     const index = enemyBullets.indexOf(b);
@@ -86,10 +88,26 @@ function handlePlayerBullet(b) {
 
   // Enemy detection
   enemies.forEach((e) => {
-    if (GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size / 2.0)) {
+    if (
+      GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size / 2.0)
+    ) {
       e.hit();
 
       if (e.hasDied()) {
+        if (e.exploder){
+          let spd = 4.0;
+          let size = 75.0;  
+
+          enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, -1, -1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 1, 1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, -1, 1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 1, -1, spd, size));
+        }
+
         const index = enemies.indexOf(e);
         if (index > -1) {
           enemies.splice(index, 1);
@@ -112,11 +130,18 @@ function handleEnemies() {
     if (e.tryFire()) {
       let spd = 4.0;
       let size = 75.0;
+      // if (e.diagonalFiring){
+      //   enemyBullets.push(new Bullet(e.x, e.y, -1, -1, spd, size));
+      //   enemyBullets.push(new Bullet(e.x, e.y, 1, 1, spd, size));
+      //   enemyBullets.push(new Bullet(e.x, e.y, -1, 1, spd, size));
+      //   enemyBullets.push(new Bullet(e.x, e.y, 1, -1, spd, size));
 
+      // } else {
       enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
+      // }
     }
 
     e.update();
@@ -135,7 +160,7 @@ function setup() {
     health: 10,
     player: p,
     canFire: false,
-    bulletDir: curBulletDir
+    bulletDir: curBulletDir,
   });
   enemies.push(e1);
 }
@@ -179,12 +204,7 @@ function draw() {
 
 function mousePressed() {
   noShoot = !noShoot;
-  // noShoot = false;
 }
-// function mouseReleased() {
-//   noShoot = true;
-// }
-
 function keyPressed(event) {
   if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") {
     curBulletDir.x = 0;
