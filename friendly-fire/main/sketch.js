@@ -8,19 +8,18 @@ let e1;
 let playerBullets = [];
 let enemyBullets = [];
 let enemies = [];
+let isShooting = false;
 
 // Game Loop
 let rounds = 1;
 let difficulty = 0;
 
 // Debug
-let noShoot = true;
+let noShoot = false;
 let curBulletDir = {
   x: 0,
   y: -1, // default: up
 };
-
-// TODO In handlePlayerBullet, Make bullet have detectable dir for enemy knockback
 
 function gotoNextRound() {
   rounds++;
@@ -51,7 +50,7 @@ function spawnEnemies() {
       health: health,
       player: p,
       bulletDir: curBulletDir,
-      reflector: random() < 1 / 4
+      canFire: random() < 1 / 4
       // diagonalFiring: random() < 1 / 2,
     });
 
@@ -60,8 +59,6 @@ function spawnEnemies() {
 }
 
 function handleEnemyBullet(b) {
-  let playerIsHit = false; // Experimental
-
   b.update();
   b.show();
 
@@ -78,19 +75,19 @@ function handleEnemyBullet(b) {
   ) {
     p.hit();
 
+     // TODO if player is invincinble, make bullets not splice
+
     const index = enemyBullets.indexOf(b);
 
     if (index > -1) {
       enemyBullets.splice(index, 1);
+      }
     }
 
     playerIsHit = true;
-  }
 }
 function handlePlayerBullet(b) {
   let enemyHasDied = false;
-
-  // TODO Make bullet have detectable dir for enemy knockback
 
   // Enemy detection
   enemies.forEach((e) => {
@@ -185,7 +182,7 @@ function draw() {
   }
 
   // Spawn playerBullets
-  if (!noShoot) {
+  if (isShooting && !noShoot) {
     if (millis() - lastSpawnTime > firingSpdFactor * 1000.0) {
       playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y));
       lastSpawnTime = millis();
@@ -196,21 +193,31 @@ function draw() {
   playerBullets = playerBullets.filter(handlePlayerBullet);
 
   // Handle enemyBullets
-  // enemyBullets = enemyBullets.filter((b) => { // cause issues
   enemyBullets.forEach(handleEnemyBullet);
 
   handleEnemies();
 
   // TODO player death incomplete
   if (p.alive) {
+    // print(enemies);
+    p.enemies = enemies;
+    noShoot = p.insideAnEnemy(false);
+
+    if (p.insideAnEnemy()){
+
+      // TODO add better feedback for player getting hit
+      p.hit();
+    }
+
     p.update();
     p.show();
   }
 }
 
 function mousePressed() {
-  noShoot = !noShoot;
+  isShooting = !isShooting;
 }
+
 function keyPressed(event) {
   if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") {
     curBulletDir.x = 0;

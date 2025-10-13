@@ -100,18 +100,6 @@ class Enemy {
   getSize() {
     return 80.0 + this.health * 5.0;
   }
-  isInsidePlayer() {
-    // experimental
-    if (this.player == null) return;
-    return GameMath.circleCollision(
-      this.player.x,
-      this.player.y,
-      this.player.size / 2.0,
-      this.x,
-      this.y,
-      this.getSize() / 2.0
-    );
-  }
   hit(x, y) {
     this.health--;
     this.knockback(x, y);
