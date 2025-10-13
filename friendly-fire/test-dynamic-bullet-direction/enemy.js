@@ -55,7 +55,7 @@ class Enemy {
     if (dist > 0) {
       dx /= dist;
       dy /= dist;
-      let speed = 0.5;
+      let speed = this.speed;
       this.x += dx * speed;
       this.y += dy * speed;
     }
@@ -107,8 +107,11 @@ class Enemy {
   knockback(x = 1, y = 0) {
     let strength = 6.0;
 
-    this.x += strength * x;
-    this.y += strength * y;
+    if (!this.reflector){
+      this.x += strength * x;
+      this.y += strength * y;
+
+    }
   }
   hasDied() {
     return this.health < 1;

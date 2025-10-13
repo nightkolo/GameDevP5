@@ -13,18 +13,18 @@ class Player {
     this.iframeTime = 1.0;
   }
   hit(){
-    if (this.invincinble) return;
+    // if (this.invincinble) return;
 
-    print("Ouch!");
+    // print("Ouch!");
   
-    this.lives--;
+    // this.lives--;
     
-    if (this.lives < 1) {
-      this.die();
-    }
+    // if (this.lives < 1) {
+    //   this.die();
+    // }
   
-    this.invincinble = true;
-    setTimeout(() => this.iframeEnd(), this.iframeTime * 1000.0)
+    // this.invincinble = true;
+    // setTimeout(() => this.iframeEnd(), this.iframeTime * 1000.0)
   }
   iframeEnd(){
     this.invincinble = false;
@@ -32,8 +32,8 @@ class Player {
 
   die(){
     // TODO Player death incomplete
-    this.alive = false;
-    print("Game over!")
+    // this.alive = false;
+    // print("Game over!")
   }
   insideAnEnemy(checkForSpawn = true){
     if (this.enemies.length == 0) return false;
