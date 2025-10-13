@@ -1,5 +1,7 @@
 const canSize = { x: 900, y: 720 }; // 5:4
 
+// Game: Tank is Dry
+
 // Objects
 let p;
 let e1;
@@ -17,6 +19,8 @@ let curBulletDir = {
   x: 0,
   y: -1, // default: up
 };
+
+// TODO In handlePlayerBullet, Make bullet have detectable dir for enemy knockback
 
 function gotoNextRound() {
   rounds++;
@@ -47,8 +51,8 @@ function spawnEnemies() {
       health: health,
       player: p,
       bulletDir: curBulletDir,
-      exploder: random() < 1 / 4,
-      diagonalFiring: random() < 1 / 2,
+      reflector: random() < 1 / 4
+      // diagonalFiring: random() < 1 / 2,
     });
 
     enemies.push(newEnemy);
@@ -86,12 +90,14 @@ function handleEnemyBullet(b) {
 function handlePlayerBullet(b) {
   let enemyHasDied = false;
 
+  // TODO Make bullet have detectable dir for enemy knockback
+
   // Enemy detection
   enemies.forEach((e) => {
     if (
       GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size / 2.0)
     ) {
-      e.hit();
+      e.hit(b.dirX, b.dirY);
 
       if (e.hasDied()) {
         if (e.exploder){

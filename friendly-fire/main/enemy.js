@@ -3,9 +3,11 @@ class Enemy {
     x = 200,
     y = 200,
     health = 10,
-    bulletDir = { x: 0, y: -1 },
+    speed = 0.5,
+    // bulletDir = { x: 0, y: -1 }, // Experimental
     canFire = false,
     exploder = false,
+    reflector = false,
     // diagonalFiring = false, // Experimental
     player,
   } = {}) {
@@ -13,10 +15,11 @@ class Enemy {
     this.y = y;
     // Stats
     this.size = this.getSize();
+    this.speed = speed;
     this.health = health;
     // Data
     this.player = player;
-    this.bulletDir = bulletDir;
+    // this.bulletDir = bulletDir;// deprecated
 
     // TODO better variable names
 
@@ -24,7 +27,7 @@ class Enemy {
     // TODO Turn Type into an enum of EnemyTypes
     this.canFire = false;
     this.exploder = exploder;
-    this.reflector = false; // experimental
+    this.reflector = reflector; // experimental
     // this.diagonalFiring = diagonalFiring;
 
     // Misc.
@@ -52,7 +55,7 @@ class Enemy {
     if (dist > 0) {
       dx /= dist;
       dy /= dist;
-      let speed = 0.25;
+      let speed = 0.5;
       this.x += dx * speed;
       this.y += dy * speed;
     }
@@ -71,8 +74,8 @@ class Enemy {
       fill(255, 0, 0);
     } else if (this.exploder) {
       fill(255, 255, 0);
-    } else {
-      fill(255, 255, 255);
+    } else if (this.reflector) {
+      fill(125, 125, 255);
     }
 
     circle(this.x, this.y, this.size);
@@ -109,17 +112,15 @@ class Enemy {
       this.getSize() / 2.0
     );
   }
-  hit() {
+  hit(x, y) {
     this.health--;
-    this.knockback();
+    this.knockback(x, y);
   }
-  knockback() {
-    // TODO isssue when player changes bulletDir, store the bulletDir data in the Bullet itself somehow
-    // not gonna lie... I do kinda miss using game engines like godot, that would've been easy to implement
-    let strength = 4.0;
+  knockback(x = 1, y = 0) {
+    let strength = 6.0;
 
-    this.x += strength * this.bulletDir.x;
-    this.y += strength * this.bulletDir.y;
+    this.x += strength * x;
+    this.y += strength * y;
   }
   hasDied() {
     return this.health < 1;
