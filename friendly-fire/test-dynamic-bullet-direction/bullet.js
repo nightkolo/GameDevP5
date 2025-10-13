@@ -11,8 +11,6 @@ class Bullet {
     this.lifetime = 3.0;
     this.alive = true;
 
-    this.hasChangedDir = false; // maybe..
-
     this.spawned();
   }
   spawned(){
@@ -24,10 +22,10 @@ class Bullet {
     print("I'm out!")
   }
   changeDir(px = 0, py = 0){ // Experimental
-    this.hasChangedDir = true;
-
-    this.dirX = px;
-    this.dirY = py;
+    this.dir = {
+      x: px,
+      y: py
+    }
   }
 
   update(){

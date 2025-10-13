@@ -50,7 +50,7 @@ function spawnEnemies() {
       health: health,
       player: p,
       bulletDir: curBulletDir,
-      reflector: random() < 1 / 4
+      canFire: random() < 1 / 4
       // diagonalFiring: random() < 1 / 2,
     });
 
@@ -87,7 +87,7 @@ function handleEnemyBullet(b) {
     playerIsHit = true;
 }
 function handlePlayerBullet(b) {
-  let removeBullet = false;
+  let enemyHasDied = false;
 
   // Enemy detection
   enemies.forEach((e) => {
@@ -115,81 +115,16 @@ function handlePlayerBullet(b) {
         if (index > -1) {
           enemies.splice(index, 1);
         }
-
-        removeBullet = true;
       }
 
-      if (e.reflector){
-        // print("Reflect");
-        // This is gonna get complicated.....
-
-        // troubleshooting..
-        let diffX = b.x - e.x;
-        let diffY = e.y - b.y;
-        // print(`${Math.sign(diffX)}, ${Math.sign(diffY)}`);
-
-        // TODO
-        // Enemy is a reflector,
-        // It REFLECTS bullets (change Bullet's direction variable to another)
-        // when gets hit by them
-        // Bullet does not get removed
-        // It should somehow detect which part of the circle it hit
-        // and move to another direction accordingly..
-
-        // QUAD 1, 2, 3, 4
-        // seems a bit much
-        // If this works i'm gonna be sad
-
-        // I may have underestimated how complex this is gonna be
-
-        // TODO... screw it, simplify the behavior
-        // Make it reflect bullets only 
-
-        if (!b.hasChangedDir) {
-
-          if (diffX > 0 && diffY > 0){
-            if (b.dirY > 0 && b.dirX == 0) { // Shooting downward in Q1
-              print("Shooting downward in Q1")
-              b.changeDir(1, 0)
-  
-            } else if (b.dirY == 0 && b.dirX < 0) { // Shooting rightward in Q1
-              print("Shooting rightward in Q1")
-              b.changeDir(0, -1)
-
-            }
-          } else if (diffX < 0 && diffY > 0){ // Q2
-            if (b.dirY > 0 && b.dirX == 0) { // Shooting downward in Q2
-              print("Shooting downward in Q2")
-              b.changeDir(-1, 0)
-              
-            } else if (b.dirY == 0 && b.dirX > 0) { // Shooting rightward in Q2
-              print("Shooting leftward in Q2")
-              b.changeDir(1, 0)
-            }
-  
-          } else if (diffX < 0 && diffY < 0){ // Q3
-  
-          } else if (diffX > 0 && diffY > 0){ // Q4s
-  
-          }
-        }
-
-        b.dirX = 1;
-        b.dirY = 0;
-
-        removeBullet = false;
-      } else {
-        removeBullet = true;
-      }
-
-     
+      enemyHasDied = true;
     }
   });
 
   b.update();
   b.show();
 
-  return !removeBullet && !b.offScreen();
+  return !enemyHasDied && !b.offScreen();
 }
 
 function handleEnemies() {
@@ -225,10 +160,9 @@ function setup() {
   e1 = new Enemy({
     x: width / 2,
     y: height / 2,
-    health: 40,
-    speed: 0.1,
+    health: 10,
     player: p,
-    reflector: true,
+    canFire: false,
     bulletDir: curBulletDir,
   });
   enemies.push(e1);
