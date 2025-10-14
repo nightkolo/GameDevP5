@@ -12,6 +12,7 @@ let isShooting = false;
 
 // Game Loop
 let rounds = 1;
+let score = 0;
 let difficulty = 0;
 
 // Debug
@@ -20,13 +21,6 @@ let curBulletDir = {
   x: 0,
   y: -1, // default: up
 };
-
-function gotoNextRound() {
-  rounds++;
-  print(rounds);
-
-  spawnEnemies();
-}
 
 let lastSpawnTime = 0.0;
 let firingSpdFactor = 0.0625;
@@ -44,14 +38,16 @@ function spawnEnemies() {
     let spawnY = random() * height;
     let health = healthMin + floor(random() * healthFactor);
 
+    const types = Object.values(Util.EnemyTypes);
+    const randomType = random(types);
+
     let newEnemy = new Enemy({
       x: spawnX,
       y: spawnY,
       health: health,
       player: p,
       bulletDir: curBulletDir,
-      canFire: random() < 1 / 4
-      // diagonalFiring: random() < 1 / 2,
+      type: randomType
     });
 
     enemies.push(newEnemy);
@@ -97,7 +93,9 @@ function handlePlayerBullet(b) {
       e.hit(b.dirX, b.dirY);
 
       if (e.hasDied()) {
-        if (e.exploder){
+        let scoreGained = e.points;
+
+        if (e.type == Util.EnemyTypes.EXPLODER){
           let spd = 4.0;
           let size = 75.0;  
 
@@ -114,6 +112,8 @@ function handlePlayerBullet(b) {
         const index = enemies.indexOf(e);
         if (index > -1) {
           enemies.splice(index, 1);
+
+          score += scoreGained;
         }
       }
 
@@ -130,21 +130,14 @@ function handlePlayerBullet(b) {
 function handleEnemies() {
   // Generates enemies
   enemies.forEach((e) => {
-    if (e.tryFire()) {
+    if (e.spawnBullets() && e.canShoot) {
       let spd = 4.0;
       let size = 75.0;
-      // if (e.diagonalFiring){
-      //   enemyBullets.push(new Bullet(e.x, e.y, -1, -1, spd, size));
-      //   enemyBullets.push(new Bullet(e.x, e.y, 1, 1, spd, size));
-      //   enemyBullets.push(new Bullet(e.x, e.y, -1, 1, spd, size));
-      //   enemyBullets.push(new Bullet(e.x, e.y, 1, -1, spd, size));
 
-      // } else {
       enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
       enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
-      // }
     }
 
     e.update();
@@ -162,7 +155,7 @@ function setup() {
     y: height / 2,
     health: 10,
     player: p,
-    canFire: false,
+    type: Util.EnemyTypes.NORMAL,
     bulletDir: curBulletDir,
   });
   enemies.push(e1);
@@ -171,9 +164,7 @@ function setup() {
 function draw() {
   background("#d1d166ff");
   noCursor();
-
   frameRate(60);
-
   rectMode(CENTER);
 
   // Enemies defeated
@@ -199,12 +190,10 @@ function draw() {
 
   // TODO player death incomplete
   if (p.alive) {
-    // print(enemies);
     p.enemies = enemies;
     noShoot = p.insideAnEnemy(false);
 
     if (p.insideAnEnemy()){
-
       // TODO add better feedback for player getting hit
       p.hit();
     }
@@ -212,6 +201,22 @@ function draw() {
     p.update();
     p.show();
   }
+
+  displayText();
+}
+
+function displayText(){
+  textAlign(LEFT);
+  textSize(45);
+  text(`Round: ${rounds}`, 100, height-100);
+  text(`Your Score: ${score}`, 100, height-150);
+}
+
+function gotoNextRound() {
+  rounds++;
+  print(rounds);
+
+  spawnEnemies();
 }
 
 function mousePressed() {

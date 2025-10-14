@@ -1,49 +1,39 @@
 class Enemy {
-  constructor({
+  constructor(
+    {
     x = 200,
     y = 200,
     health = 10,
-    speed = 0.5,
-    // bulletDir = { x: 0, y: -1 }, // Experimental
-    canFire = false,
-    exploder = false,
-    reflector = false,
-    // diagonalFiring = false, // Experimental
-    player,
-  } = {}) {
+    speed = 0.75,
+    type = Util.EnemyTypes,
+    player
+  } = {}
+) {
     this.x = x;
     this.y = y;
     // Stats
     this.size = this.getSize();
     this.speed = speed;
     this.health = health;
-    // Data
+    this.points = round(health / 4.0);
     this.player = player;
-    // this.bulletDir = bulletDir;// deprecated
-
-    // TODO better variable names
 
     // Type
-    // TODO Turn Type into an enum of EnemyTypes
-    this.canFire = false;
-    this.exploder = exploder;
-    this.reflector = reflector; // experimental
-    // this.diagonalFiring = diagonalFiring;
-
+    this.type = type;
+    
     // Misc.
-    this.storeCanFire = canFire;
     this.lastShotTime = 0;
-    this.firingCooldown = 1.25;
+    this.canShoot = false;
+    this.shootingCooldown = 1.25;
     this.hasSpawned = false;
 
     this.spawned();
   }
   spawned() {
-    setTimeout(() => this.isReady(), 1000.0);
-  }
-  isReady() {
-    this.hasSpawned = true;
-    this.canFire = this.storeCanFire;
+    setTimeout(() => {
+      this.hasSpawned = true;
+      this.canShoot = this.type == Util.EnemyTypes.SHOOTER;
+    }, 1000.0);
   }
   moveTowardPlayer() {
     if (this.player == null) return;
@@ -55,10 +45,22 @@ class Enemy {
     if (dist > 0) {
       dx /= dist;
       dy /= dist;
-      let speed = 0.5;
-      this.x += dx * speed;
-      this.y += dy * speed;
+      let spd = this.speed;
+      if (this.type == Util.EnemyTypes.SPRINTER){
+        spd *= 10.0/3.0;
+      }
+      this.x += dx * spd;
+      this.y += dy * spd;
     }
+  }
+  spawnBullets() {
+    if (!this.canShoot && this.type != Util.EnemyTypes.SHOOTER) return false;
+
+    if (millis() - this.lastShotTime > this.shootingCooldown * 1000) {
+      this.lastShotTime = millis();
+      return true; // ready to fire
+    }
+    return false;
   }
   update() {
     this.size = this.getSize();
@@ -70,12 +72,22 @@ class Enemy {
   show() {
     rectMode(CENTER);
 
-    if (this.storeCanFire) {
-      fill(255, 0, 0);
-    } else if (this.exploder) {
-      fill(255, 255, 0);
-    } else if (this.reflector) {
-      fill(125, 125, 255);
+    switch (this.type){
+      case Util.EnemyTypes.NORMAL:
+        fill(255);
+        break;
+      case Util.EnemyTypes.SHOOTER:
+        fill(255, 0, 0);
+        break;
+      case Util.EnemyTypes.EXPLODER:
+        fill(255, 255, 0);
+        break;
+      case Util.EnemyTypes.SPRINTER:
+        fill(0, 0, 255);
+        break;
+      case Util.EnemyTypes.REFLECTOR:
+        fill(100, 255, 100);
+        break;
     }
 
     circle(this.x, this.y, this.size);
@@ -88,23 +100,14 @@ class Enemy {
 
     text(`${this.health}`, this.x, this.y);
   }
-  tryFire() {
-    if (!this.canFire) return false;
-
-    if (millis() - this.lastShotTime > this.firingCooldown * 1000) {
-      this.lastShotTime = millis();
-      return true; // ready to fire
-    }
-    return false;
-  }
   getSize() {
     return 80.0 + this.health * 5.0;
   }
-  hit(x, y) {
+  hit(hitX = 0, hitY = 0) {
     this.health--;
-    this.knockback(x, y);
+    this.knockback(hitX, hitY);
   }
-  knockback(x = 1, y = 0) {
+  knockback(hitX, hitY) {
     let strength = 6.0;
 
     this.x += strength * x;

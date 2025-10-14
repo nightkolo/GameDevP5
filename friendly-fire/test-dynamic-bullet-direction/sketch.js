@@ -21,13 +21,6 @@ let curBulletDir = {
   y: -1, // default: up
 };
 
-function gotoNextRound() {
-  rounds++;
-  print(rounds);
-
-  spawnEnemies();
-}
-
 let lastSpawnTime = 0.0;
 let firingSpdFactor = 0.0625;
 
@@ -281,6 +274,13 @@ function draw() {
     p.update();
     p.show();
   }
+}
+
+function gotoNextRound() {
+  rounds++;
+  print(rounds);
+
+  spawnEnemies();
 }
 
 function mousePressed() {

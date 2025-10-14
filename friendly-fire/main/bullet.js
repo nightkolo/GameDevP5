@@ -19,7 +19,6 @@ class Bullet {
   }
   lifetimeEnded(){
     this.alive = false;
-    print("I'm out!")
   }
   changeDir(px = 0, py = 0){ // Experimental
     this.dir = {
