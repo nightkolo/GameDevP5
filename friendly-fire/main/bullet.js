@@ -15,10 +15,9 @@ class Bullet {
   }
   spawned(){
     // setTimeout(this.lifetimeEnded.bind(this), this.lifetime * 1000.0);
-    setTimeout(() => this.lifetimeEnded(), this.lifetime * 1000.0);
-  }
-  lifetimeEnded(){
-    this.alive = false;
+    setTimeout(() => {
+      this.alive = false;
+    }, this.lifetime * 1000.0);
   }
   changeDir(px = 0, py = 0){ // Experimental
     this.dir = {

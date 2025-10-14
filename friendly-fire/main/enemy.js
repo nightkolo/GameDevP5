@@ -110,8 +110,8 @@ class Enemy {
   knockback(hitX, hitY) {
     let strength = 6.0;
 
-    this.x += strength * x;
-    this.y += strength * y;
+    this.x += strength * hitX;
+    this.y += strength * hitY;
   }
   hasDied() {
     return this.health < 1;

@@ -83,7 +83,7 @@ function handleEnemyBullet(b) {
     playerIsHit = true;
 }
 function handlePlayerBullet(b) {
-  let enemyHasDied = false;
+  let removeBullet = false;
 
   // Enemy detection
   enemies.forEach((e) => {
@@ -117,14 +117,22 @@ function handlePlayerBullet(b) {
         }
       }
 
-      enemyHasDied = true;
+      if (e.type == Util.EnemyTypes.REFLECTOR){
+        print("Reflect")
+
+        b.dirX *= -1;
+        b.dirY *= -1;
+
+      } else {
+        removeBullet = true;
+      }
     }
   });
 
   b.update();
   b.show();
 
-  return !enemyHasDied && !b.offScreen();
+  return !removeBullet && !b.offScreen();
 }
 
 function handleEnemies() {
