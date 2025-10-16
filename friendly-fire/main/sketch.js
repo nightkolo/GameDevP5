@@ -2,6 +2,8 @@ const canSize = { x: 900, y: 720 }; // 5:4
 
 // Game: Tank is Dry
 
+// TODO use modules for multiple js files
+
 // Objects
 let p;
 let e1;
@@ -24,6 +26,34 @@ let curBulletDir = {
 
 let lastSpawnTime = 0.0;
 let firingSpdFactor = 0.0625;
+
+// TODO current issue
+// enemies spawn at random with completely random attributes
+// add pre-defined rounds for a sense of progression...
+
+function spawnRoundEnemies(round = 0){
+  const roundEnemies = Util.waves[round];
+
+  for (let i = 0; i < roundEnemies; i++) {
+    let spawnX = random() * width;
+    let spawnY = random() * height;
+    let health = roundEnemies[i].hp[0] + floor(random() * healthFactor);
+
+    const types = Object.values(Util.EnemyTypes);
+    const randomType = random(types);
+
+    let newEnemy = new Enemy({
+      x: spawnX,
+      y: spawnY,
+      health: health,
+      player: p,
+      bulletDir: curBulletDir,
+      type: randomType
+    });
+
+    enemies.push(newEnemy);
+  }
+}
 
 function spawnEnemies() {
   let healthMin = 3;
