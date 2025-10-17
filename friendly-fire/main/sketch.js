@@ -13,9 +13,10 @@ let enemies = [];
 let isShooting = false;
 
 // Game Loop
-let rounds = 1;
+let rounds = 0;
 let score = 0;
 let difficulty = 0;
+let gameOver = false;
 
 // Debug
 let noShoot = false;
@@ -30,28 +31,40 @@ let shootingSpdFactor = 0.0625;
 // TODO current issue
 // enemies spawn at random with completely random attributes
 // add pre-defined rounds for a sense of progression...
+// Fixed perhaps
 
-function spawnRoundEnemies(round = 0){
-  const roundEnemies = Util.waves[round];
+function spawnRoundEnemies(onRound = rounds) {
+  const roundEnemies = Game.waves[onRound - 1];
 
-  for (let i = 0; i < roundEnemies; i++) {
+  print(roundEnemies);
+
+  if (roundEnemies == undefined) {
+    gameOver = true;
+    return;
+  }
+
+  for (let i = 0; i < roundEnemies.length; i++) {
+    print(roundEnemies[i]);
+
     let spawnX = random() * width;
     let spawnY = random() * height;
-    let health = roundEnemies[i].hp[0] + floor(random() * healthFactor);
+    let healthRange = roundEnemies[i].hp[1] - roundEnemies[i].hp[0];
 
-    const types = Object.values(Util.EnemyTypes);
-    const randomType = random(types);
+    print(healthRange);
 
-    let newEnemy = new Enemy({
-      x: spawnX,
-      y: spawnY,
-      health: health,
-      player: p,
-      bulletDir: curBulletDir,
-      type: randomType
-    });
+    let randomhealth = roundEnemies[i].hp[0] + floor(random() * healthRange);
 
-    enemies.push(newEnemy);
+    for (let j = 0; j < roundEnemies[i].count; j++) {
+      let newEnemy = new Enemy({
+        x: spawnX,
+        y: spawnY,
+        health: randomhealth,
+        player: p,
+        type: roundEnemies[i].type,
+      });
+
+      enemies.push(newEnemy);
+    }
   }
 }
 
@@ -68,7 +81,7 @@ function spawnEnemies() {
     let spawnY = random() * height;
     let health = healthMin + floor(random() * healthFactor);
 
-    const types = Object.values(Util.EnemyTypes);
+    const types = Object.values(Game.EnemyTypes);
     const randomType = random(types);
 
     let newEnemy = new Enemy({
@@ -77,7 +90,7 @@ function spawnEnemies() {
       health: health,
       player: p,
       bulletDir: curBulletDir,
-      type: randomType
+      type: randomType,
     });
 
     enemies.push(newEnemy);
@@ -101,16 +114,16 @@ function handleEnemyBullet(b) {
   ) {
     p.hit();
 
-     // TODO if player is invincinble, make bullets not splice
+    // TODO if player is invincinble, make bullets not splice
 
     const index = enemyBullets.indexOf(b);
 
     if (index > -1) {
       enemyBullets.splice(index, 1);
-      }
     }
+  }
 
-    playerIsHit = true;
+  playerIsHit = true;
 }
 function handlePlayerBullet(b) {
   let removeBullet = false;
@@ -125,9 +138,9 @@ function handlePlayerBullet(b) {
       if (e.hasDied()) {
         let scoreGained = e.points;
 
-        if (e.type == Util.EnemyTypes.EXPLODER){
+        if (e.type == Game.EnemyTypes.EXPLODER) {
           let spd = 4.0;
-          let size = 75.0;  
+          let size = 75.0;
 
           enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
           enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
@@ -147,12 +160,11 @@ function handlePlayerBullet(b) {
         }
       }
 
-      if (e.type == Util.EnemyTypes.REFLECTOR){
-        print("Reflect")
+      if (e.type == Game.EnemyTypes.REFLECTOR) {
+        print("Reflect");
 
         b.dirX *= -1;
         b.dirY *= -1;
-
       } else {
         removeBullet = true;
       }
@@ -193,11 +205,15 @@ function setup() {
     y: height / 2,
     health: 10,
     player: p,
-    type: Util.EnemyTypes.NORMAL,
+    type: Game.EnemyTypes.NORMAL,
     followPlayer: false,
     bulletDir: curBulletDir,
   });
   enemies.push(e1);
+}
+
+function enemiesDefeated() {
+  return enemies.length == 0 && !gameOver;
 }
 
 function draw() {
@@ -207,8 +223,9 @@ function draw() {
   rectMode(CENTER);
 
   // Enemies defeated
-  if (enemies.length == 0) {
+  if (enemiesDefeated()) {
     gotoNextRound();
+    // spawnRoundEnemies();
   }
 
   // Spawn playerBullets
@@ -232,7 +249,7 @@ function draw() {
     p.enemies = enemies;
     noShoot = p.insideAnEnemy(false);
 
-    if (p.insideAnEnemy()){
+    if (p.insideAnEnemy()) {
       // TODO add better feedback for player getting hit
       p.hit();
     }
@@ -244,18 +261,19 @@ function draw() {
   displayText();
 }
 
-function displayText(){
+function displayText() {
   textAlign(LEFT);
   textSize(45);
-  text(`Round: ${rounds}`, 100, height-100);
-  text(`Your Score: ${score}`, 100, height-150);
+  text(`Round: ${rounds}`, 100, height - 100);
+  text(`Your Score: ${score}`, 100, height - 150);
 }
 
 function gotoNextRound() {
   rounds++;
   print(rounds);
 
-  spawnEnemies();
+  // spawnEnemies();
+  spawnRoundEnemies();
 }
 
 function mousePressed() {

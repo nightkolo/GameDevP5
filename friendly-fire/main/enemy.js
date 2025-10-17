@@ -1,15 +1,13 @@
 class Enemy {
-  constructor(
-    {
+  constructor({
     x = 200,
     y = 200,
     health = 10,
     speed = 1.0,
-    type = Util.EnemyTypes,
+    type = Game.EnemyTypes,
     followPlayer = true,
-    player
-  } = {}
-) {
+    player,
+  } = {}) {
     this.x = x;
     this.y = y;
     // Stats
@@ -21,7 +19,7 @@ class Enemy {
 
     // Type
     this.type = type;
-    
+
     // Misc.
     this.followPlayer = followPlayer;
     this.lastShotTime = 0;
@@ -34,7 +32,7 @@ class Enemy {
   spawned() {
     setTimeout(() => {
       this.hasSpawned = true;
-      this.canShoot = this.type == Util.EnemyTypes.SHOOTER;
+      this.canShoot = this.type == Game.EnemyTypes.SHOOTER;
     }, 1000.0);
   }
   moveTowardPlayer() {
@@ -48,7 +46,7 @@ class Enemy {
       dx /= distance;
       dy /= distance;
       let spd = this.speed;
-      if (this.type == Util.EnemyTypes.SPRINTER){
+      if (this.type == Game.EnemyTypes.SPRINTER) {
         spd *= 4.0;
       }
       this.x += dx * spd;
@@ -56,7 +54,7 @@ class Enemy {
     }
   }
   spawnBullets() {
-    if (!this.canShoot && this.type != Util.EnemyTypes.SHOOTER) return false;
+    if (!this.canShoot && this.type != Game.EnemyTypes.SHOOTER) return false;
 
     if (millis() - this.lastShotTime > this.shootingSpdFactor * 1000) {
       this.lastShotTime = millis();
@@ -74,20 +72,20 @@ class Enemy {
   show() {
     rectMode(CENTER);
 
-    switch (this.type){
-      case Util.EnemyTypes.NORMAL:
+    switch (this.type) {
+      case Game.EnemyTypes.NORMAL:
         fill(255);
         break;
-      case Util.EnemyTypes.SHOOTER:
+      case Game.EnemyTypes.SHOOTER:
         fill(255, 0, 0);
         break;
-      case Util.EnemyTypes.EXPLODER:
+      case Game.EnemyTypes.EXPLODER:
         fill(255, 255, 0);
         break;
-      case Util.EnemyTypes.SPRINTER:
+      case Game.EnemyTypes.SPRINTER:
         fill(0, 0, 255);
         break;
-      case Util.EnemyTypes.REFLECTOR:
+      case Game.EnemyTypes.REFLECTOR:
         fill(100, 255, 100);
         break;
     }
@@ -103,7 +101,7 @@ class Enemy {
     text(`${this.health}`, this.x, this.y);
   }
   getSize() {
-    if (this.type == Util.EnemyTypes.EXPLODER) {
+    if (this.type == Game.EnemyTypes.EXPLODER) {
       return 160.0 - this.health * 3.0;
     }
     return 80.0 + this.health * 5.0;
