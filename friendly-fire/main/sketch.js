@@ -25,7 +25,7 @@ let curBulletDir = {
 };
 
 let lastSpawnTime = 0.0;
-let firingSpdFactor = 0.0625;
+let shootingSpdFactor = 0.0625;
 
 // TODO current issue
 // enemies spawn at random with completely random attributes
@@ -194,6 +194,7 @@ function setup() {
     health: 10,
     player: p,
     type: Util.EnemyTypes.NORMAL,
+    followPlayer: false,
     bulletDir: curBulletDir,
   });
   enemies.push(e1);
@@ -212,7 +213,7 @@ function draw() {
 
   // Spawn playerBullets
   if (isShooting && !noShoot) {
-    if (millis() - lastSpawnTime > firingSpdFactor * 1000.0) {
+    if (millis() - lastSpawnTime > shootingSpdFactor * 1000.0) {
       playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y));
       lastSpawnTime = millis();
     }

@@ -4,8 +4,9 @@ class Enemy {
     x = 200,
     y = 200,
     health = 10,
-    speed = 0.75,
+    speed = 1.0,
     type = Util.EnemyTypes,
+    followPlayer = true,
     player
   } = {}
 ) {
@@ -22,9 +23,10 @@ class Enemy {
     this.type = type;
     
     // Misc.
+    this.followPlayer = followPlayer;
     this.lastShotTime = 0;
     this.canShoot = false;
-    this.shootingCooldown = 1.25;
+    this.shootingSpdFactor = 1.25;
     this.hasSpawned = false;
 
     this.spawned();
@@ -36,18 +38,18 @@ class Enemy {
     }, 1000.0);
   }
   moveTowardPlayer() {
-    if (this.player == null) return;
+    if (this.player == null || !this.followPlayer) return;
 
     let dx = this.player.x - this.x;
     let dy = this.player.y - this.y;
-    let dist = sqrt(dx * dx + dy * dy);
+    let distance = sqrt(dx * dx + dy * dy);
 
-    if (dist > 0) {
-      dx /= dist;
-      dy /= dist;
+    if (distance > 0) {
+      dx /= distance;
+      dy /= distance;
       let spd = this.speed;
       if (this.type == Util.EnemyTypes.SPRINTER){
-        spd *= 10.0/3.0;
+        spd *= 4.0;
       }
       this.x += dx * spd;
       this.y += dy * spd;
@@ -56,7 +58,7 @@ class Enemy {
   spawnBullets() {
     if (!this.canShoot && this.type != Util.EnemyTypes.SHOOTER) return false;
 
-    if (millis() - this.lastShotTime > this.shootingCooldown * 1000) {
+    if (millis() - this.lastShotTime > this.shootingSpdFactor * 1000) {
       this.lastShotTime = millis();
       return true; // ready to fire
     }
@@ -101,6 +103,9 @@ class Enemy {
     text(`${this.health}`, this.x, this.y);
   }
   getSize() {
+    if (this.type == Util.EnemyTypes.EXPLODER) {
+      return 160.0 - this.health * 3.0;
+    }
     return 80.0 + this.health * 5.0;
   }
   hit(hitX = 0, hitY = 0) {
