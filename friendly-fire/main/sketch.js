@@ -13,7 +13,7 @@ let enemies = [];
 let isShooting = false;
 
 // Game Loop
-let rounds = 0;
+let waves = 0;
 let score = 0;
 let difficulty = 0;
 let gameOver = false;
@@ -30,70 +30,54 @@ let shootingSpdFactor = 0.0625;
 
 // TODO current issue
 // enemies spawn at random with completely random attributes
-// add pre-defined rounds for a sense of progression...
+// add pre-defined waves for a sense of progression...
 // Fixed perhaps
 
-function spawnRoundEnemies(onRound = rounds) {
-  const roundEnemies = Game.waves[onRound - 1];
+function spawnWaveEnemies(onWave = waves) {
+  const waveEnemies = Game.waves[onWave - 1];
 
-  print(roundEnemies);
+  print(waveEnemies);
 
-  if (roundEnemies == undefined) {
+  if (waveEnemies == undefined) {
     gameOver = true;
     return;
   }
 
-  for (let i = 0; i < roundEnemies.length; i++) {
-    print(roundEnemies[i]);
+  for (let i = 0; i < waveEnemies.length; i++) {
+    print(waveEnemies[i]);
+    print(`Type: ${typeof(waveEnemies[i].type) == "object"}`);
+    
+    let healthRange = waveEnemies[i].hp[1] - waveEnemies[i].hp[0];
+    let enemySpawns = waveEnemies[i].count[0] + floor(random() * (waveEnemies[i].count[1] - waveEnemies[i].count[0]));
 
-    let spawnX = random() * width;
-    let spawnY = random() * height;
-    let healthRange = roundEnemies[i].hp[1] - roundEnemies[i].hp[0];
+    let enemyType;
 
-    print(healthRange);
+    if (typeof(waveEnemies[i].type) == "object") { // Is a randomized enemy encounter
+      enemyType = waveEnemies[i].type[
+        floor(waveEnemies[i].type.length * random())
+      ] 
+    } else { // Is a pre-defined enemy counter
+      enemyType = waveEnemies[i].type;
+    } 
 
-    let randomhealth = roundEnemies[i].hp[0] + floor(random() * healthRange);
+    for (let j = 0; j < enemySpawns; j++) {
+      print(`Count ${j}`);
 
-    for (let j = 0; j < roundEnemies[i].count; j++) {
+      let spawnX = random() * width;
+      let spawnY = random() * height;
+
+      let randomHealth = waveEnemies[i].hp[0] + floor(random() * healthRange);
+
       let newEnemy = new Enemy({
         x: spawnX,
         y: spawnY,
-        health: randomhealth,
+        health: randomHealth,
         player: p,
-        type: roundEnemies[i].type,
+        type: enemyType,
       });
 
       enemies.push(newEnemy);
     }
-  }
-}
-
-function spawnEnemies() {
-  let healthMin = 3;
-  let healthFactor = 20.0;
-  let enemySpawnsMin = 3;
-  let enemySpawnsFactor = 3;
-
-  let noOfEnemies = enemySpawnsMin + floor(random() * enemySpawnsFactor);
-
-  for (let i = 0; i < noOfEnemies; i++) {
-    let spawnX = random() * width;
-    let spawnY = random() * height;
-    let health = healthMin + floor(random() * healthFactor);
-
-    const types = Object.values(Game.EnemyTypes);
-    const randomType = random(types);
-
-    let newEnemy = new Enemy({
-      x: spawnX,
-      y: spawnY,
-      health: health,
-      player: p,
-      bulletDir: curBulletDir,
-      type: randomType,
-    });
-
-    enemies.push(newEnemy);
   }
 }
 
@@ -224,8 +208,8 @@ function draw() {
 
   // Enemies defeated
   if (enemiesDefeated()) {
-    gotoNextRound();
-    // spawnRoundEnemies();
+    gotoNextWave();
+    // spawnWaveEnemies();
   }
 
   // Spawn playerBullets
@@ -264,16 +248,16 @@ function draw() {
 function displayText() {
   textAlign(LEFT);
   textSize(45);
-  text(`Round: ${rounds}`, 100, height - 100);
+  text(`Wave: ${waves}`, 100, height - 100);
   text(`Your Score: ${score}`, 100, height - 150);
 }
 
-function gotoNextRound() {
-  rounds++;
-  print(rounds);
+function gotoNextWave() {
+  waves++;
+  print(waves);
 
   // spawnEnemies();
-  spawnRoundEnemies();
+  spawnWaveEnemies();
 }
 
 function mousePressed() {
@@ -305,5 +289,34 @@ function keyPressed(event) {
   ) {
     curBulletDir.x = 1;
     curBulletDir.y = 0;
+  }
+}
+
+function spawnRandomEnemies() { // deprecated
+  let healthMin = 3;
+  let healthFactor = 20.0;
+  let enemySpawnsMin = 3;
+  let enemySpawnsFactor = 3;
+
+  let noOfEnemies = enemySpawnsMin + floor(random() * enemySpawnsFactor);
+
+  for (let i = 0; i < noOfEnemies; i++) {
+    let spawnX = random() * width;
+    let spawnY = random() * height;
+    let health = healthMin + floor(random() * healthFactor);
+
+    const types = Object.values(Game.EnemyTypes);
+    const randomType = random(types);
+
+    let newEnemy = new Enemy({
+      x: spawnX,
+      y: spawnY,
+      health: health,
+      player: p,
+      bulletDir: curBulletDir,
+      type: randomType,
+    });
+
+    enemies.push(newEnemy);
   }
 }

@@ -107,6 +107,8 @@ class Enemy {
     return 80.0 + this.health * 5.0;
   }
   hit(hitX = 0, hitY = 0) {
+    // if (!this.hasSpawned) return;
+
     this.health--;
     this.knockback(hitX, hitY);
   }
