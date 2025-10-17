@@ -13,7 +13,7 @@ class Game {
   static waves = [ // Pre-defined Waves
     [
       // 1
-      { type: [this.EnemyTypes.NORMAL, this.EnemyTypes.REFLECTOR], count: [3, 4], hp: [6, 9] },
+      { type: this.EnemyTypes.NORMAL, count: [3, 4], hp: [6, 9] },
     ],
     [
       // 2
@@ -23,7 +23,7 @@ class Game {
     [
       // 3
       { type: this.EnemyTypes.NORMAL, count: [4, 5], hp: [8, 10] },
-      { type: this.EnemyTypes.SHOOTER, count: [2, 2], hp: [9, 12] }
+      { type: [this.EnemyTypes.SHOOTER, this.EnemyTypes.REFLECTOR], count: [2, 2], hp: [9, 12] }
     ],
     [
       // 4
@@ -32,7 +32,7 @@ class Game {
     ],
     [
       // 5
-      { type: this.EnemyTypes.SHOOTER, count: [3, 4], hp: [12, 18] }
+      { type: this.EnemyTypes.SHOOTER, count: [2, 3], hp: [12, 18] }
     ],
     [
       // 6

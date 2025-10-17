@@ -28,10 +28,89 @@ let curBulletDir = {
 let lastSpawnTime = 0.0;
 let shootingSpdFactor = 0.0625;
 
-// TODO current issue
-// enemies spawn at random with completely random attributes
-// add pre-defined waves for a sense of progression...
-// Fixed perhaps
+function handleEnemyBullet(b) {
+  if (!b.alive) {
+    removeBullet(b);
+  }
+  
+  if (TankMath.circleCollision(b.x, b.y, b.size / 2.0, p.x, p.y, p.size / 2.0)) {
+    // TODO if player is invincinble, make bullets not splice
+    
+    p.hit();
+    removeBullet(b);
+  }
+
+  b.update();
+  b.show();
+}
+
+function handlePlayerBullet(b) {
+  let removeBullet = false;
+
+  // Enemy detection
+  enemies.forEach((e) => {
+    if (
+      TankMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size / 2.0)
+    ) {
+      e.hit(b.dirX, b.dirY);
+
+      if (e.hasDied()) {
+        let scoreGained = e.points;
+
+        if (e.type == Game.EnemyTypes.EXPLODER) {
+          let spd = 4.0;
+          let size = 75.0;
+
+          enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, -1, -1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 1, 1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, -1, 1, spd, size));
+          enemyBullets.push(new Bullet(e.x, e.y, 1, -1, spd, size));
+        }
+
+        const index = enemies.indexOf(e);
+        if (index > -1) {
+          enemies.splice(index, 1);
+
+          score += scoreGained;
+        }
+      }
+
+      if (e.type == Game.EnemyTypes.REFLECTOR) {
+        b.dirX *= -1;
+        b.dirY *= -1;
+      } else {
+        removeBullet = true;
+      }
+    }
+  });
+
+  b.update();
+  b.show();
+
+  return !removeBullet && !b.offScreen();
+}
+
+function handleEnemies() {
+  // Generates enemies
+  enemies.forEach((e) => {
+    if (e.spawnBullets() && e.canShoot) {
+      let spd = 4.0;
+      let size = 75.0;
+
+      enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
+      enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
+      enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
+      enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
+    }
+
+    e.update();
+    e.show();
+  });
+}
 
 function spawnWaveEnemies(onWave = waves) {
   const waveEnemies = Game.waves[onWave - 1];
@@ -81,104 +160,6 @@ function spawnWaveEnemies(onWave = waves) {
   }
 }
 
-function handleEnemyBullet(b) {
-  b.update();
-  b.show();
-
-  if (!b.alive) {
-    const index = enemyBullets.indexOf(b);
-
-    if (index > -1) {
-      enemyBullets.splice(index, 1);
-    }
-  }
-
-  if (
-    GameMath.circleCollision(b.x, b.y, b.size / 2.0, p.x, p.y, p.size / 2.0)
-  ) {
-    p.hit();
-
-    // TODO if player is invincinble, make bullets not splice
-
-    const index = enemyBullets.indexOf(b);
-
-    if (index > -1) {
-      enemyBullets.splice(index, 1);
-    }
-  }
-
-  playerIsHit = true;
-}
-function handlePlayerBullet(b) {
-  let removeBullet = false;
-
-  // Enemy detection
-  enemies.forEach((e) => {
-    if (
-      GameMath.circleCollision(e.x, e.y, e.size / 2.0, b.x, b.y, b.size / 2.0)
-    ) {
-      e.hit(b.dirX, b.dirY);
-
-      if (e.hasDied()) {
-        let scoreGained = e.points;
-
-        if (e.type == Game.EnemyTypes.EXPLODER) {
-          let spd = 4.0;
-          let size = 75.0;
-
-          enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, -1, -1, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, 1, 1, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, -1, 1, spd, size));
-          enemyBullets.push(new Bullet(e.x, e.y, 1, -1, spd, size));
-        }
-
-        const index = enemies.indexOf(e);
-        if (index > -1) {
-          enemies.splice(index, 1);
-
-          score += scoreGained;
-        }
-      }
-
-      if (e.type == Game.EnemyTypes.REFLECTOR) {
-        print("Reflect");
-
-        b.dirX *= -1;
-        b.dirY *= -1;
-      } else {
-        removeBullet = true;
-      }
-    }
-  });
-
-  b.update();
-  b.show();
-
-  return !removeBullet && !b.offScreen();
-}
-
-function handleEnemies() {
-  // Generates enemies
-  enemies.forEach((e) => {
-    if (e.spawnBullets() && e.canShoot) {
-      let spd = 4.0;
-      let size = 75.0;
-
-      enemyBullets.push(new Bullet(e.x, e.y, 0, -1, spd, size));
-      enemyBullets.push(new Bullet(e.x, e.y, 0, 1, spd, size));
-      enemyBullets.push(new Bullet(e.x, e.y, -1, 0, spd, size));
-      enemyBullets.push(new Bullet(e.x, e.y, 1, 0, spd, size));
-    }
-
-    e.update();
-    e.show();
-  });
-}
-
 function setup() {
   createCanvas(canSize.x, canSize.y);
 
@@ -196,20 +177,14 @@ function setup() {
   enemies.push(e1);
 }
 
-function enemiesDefeated() {
-  return enemies.length == 0 && !gameOver;
-}
-
 function draw() {
   background("#d1d166ff");
   noCursor();
   frameRate(60);
   rectMode(CENTER);
 
-  // Enemies defeated
   if (enemiesDefeated()) {
     gotoNextWave();
-    // spawnWaveEnemies();
   }
 
   // Spawn playerBullets
@@ -245,11 +220,15 @@ function draw() {
   displayText();
 }
 
-function displayText() {
-  textAlign(LEFT);
-  textSize(45);
-  text(`Wave: ${waves}`, 100, height - 100);
-  text(`Your Score: ${score}`, 100, height - 150);
+function removeBullet(b){
+  const index = enemyBullets.indexOf(b);
+  if (enemyBullets.indexOf(b) > -1) {
+    enemyBullets.splice(index, 1);
+  }
+}
+
+function enemiesDefeated() {
+  return enemies.length == 0 && !gameOver;
 }
 
 function gotoNextWave() {
@@ -258,6 +237,13 @@ function gotoNextWave() {
 
   // spawnEnemies();
   spawnWaveEnemies();
+}
+
+function displayText() {
+  textAlign(LEFT);
+  textSize(45);
+  text(`Wave: ${waves} / ${Game.waves.length}`, 100, height - 100);
+  text(`Your Score: ${score}`, 100, height - 150);
 }
 
 function mousePressed() {

@@ -24,12 +24,10 @@ class Player {
     }
   
     this.invincinble = true;
-    setTimeout(() => this.iframeEnd(), this.iframeTime * 1000.0)
+    setTimeout(() => {
+      this.invincinble = false;
+    }, this.iframeTime * 1000.0)
   }
-  iframeEnd(){
-    this.invincinble = false;
-  }
-
   die(){
     // TODO Player death incomplete
     this.alive = false;
@@ -41,7 +39,7 @@ class Player {
     if (!this.enemies[0].hasSpawned && checkForSpawn) return false;
 
     return this.enemies.some((e) => 
-      GameMath.circleCollision(
+      TankMath.circleCollision(
         this.x,
         this.y,
         this.size / 2.0,
@@ -52,9 +50,6 @@ class Player {
     );
   }
   update(){
-    // print(`p.insideAnEnemy: ${this.insideAnEnemy()}`);
-    // print(`p.invincinble: ${this.invincinble}`);
-
     this.x = mouseX;
     this.y = mouseY;
   }
