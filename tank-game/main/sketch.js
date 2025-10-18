@@ -10,6 +10,7 @@ let e1;
 let playerBullets = [];
 let enemyBullets = [];
 let enemies = [];
+let items = [];
 let isShooting = false;
 
 // Game Loop
@@ -46,6 +47,24 @@ function handleEnemyBullet(b) {
 
 function handlePlayerBullet(b) {
   let removeBullet = false;
+
+  items.forEach((item) => {
+    if (
+      TankMath.circleCollision(item.x, item.y, item.size / 2.0, b.x, b.y, b.size / 2.0)
+    ) {
+      item.hit();
+
+      if (item.isCollected()){
+        const index = items.indexOf(item);
+        if (index > -1) {
+          items.splice(index, 1);
+        }
+      }
+
+      removeBullet = true
+    }
+  })
+ 
 
   // Enemy detection
   enemies.forEach((e) => {
@@ -91,7 +110,7 @@ function handlePlayerBullet(b) {
   b.update();
   b.show();
 
-  return !removeBullet && !b.offScreen();
+  return !removeBullet && !TankMath.offScreen(b.x, b.y, canSize.x, canSize.y);
 }
 
 function handleEnemies() {
@@ -155,10 +174,16 @@ function spawnWaveEnemies(onWave = waves) {
   }
 }
 
+let idrop;
+
 function setup() {
   createCanvas(canSize.x, canSize.y);
 
   p = new Player();
+
+  idrop = new Item(width/2, height/2, Game.Items.EXTRA_HP, p);
+
+  items.push(idrop);
 
   e1 = new Enemy({
     x: width / 2,
@@ -178,6 +203,12 @@ function draw() {
   frameRate(60);
   rectMode(CENTER);
 
+  items = items.filter((itemdrop) => {
+    itemdrop.update();
+    itemdrop.show();
+    return !itemdrop.collected;
+  })
+
   if (enemiesDefeated()) {
     gotoNextWave();
   }
@@ -192,7 +223,6 @@ function draw() {
 
   // Handle playerBullets
   playerBullets = playerBullets.filter(handlePlayerBullet);
-
   // Handle enemyBullets
   enemyBullets.forEach(handleEnemyBullet);
 
@@ -237,7 +267,9 @@ function gotoNextWave() {
 function displayText() {
   textAlign(LEFT);
   textSize(45);
-  text(`Wave: ${waves} / ${Game.waves.length}`, 100, height - 100);
+  text(`Wave: ${waves}`, 100, height - 100);
+
+  // text(`Wave: ${waves} / ${Game.waves.length}`, 100, height - 100);
   text(`Your Score: ${score}`, 100, height - 150);
 }
 

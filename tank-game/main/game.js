@@ -6,6 +6,10 @@ class Game {
     SPRINTER: 3,
     REFLECTOR: 4,
   };
+  static Items = {
+    EXTRA_HP: 0,
+    TWO_AXIS_SHOOTING: 1
+  }
   // type: Enemy Type (can be randomized encounter)
   // count: quantity of the Enemy
   // hp: Random health point around interval
