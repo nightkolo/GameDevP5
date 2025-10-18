@@ -26,7 +26,7 @@ let curBulletDir = {
 };
 
 let lastSpawnTime = 0.0;
-let shootingSpdFactor = 0.0625;
+let shootingSpdFactor = 0.045;
 
 function handleEnemyBullet(b) {
   if (!b.alive) {
@@ -123,9 +123,6 @@ function spawnWaveEnemies(onWave = waves) {
   }
 
   for (let i = 0; i < waveEnemies.length; i++) {
-    print(waveEnemies[i]);
-    print(`Type: ${typeof(waveEnemies[i].type) == "object"}`);
-    
     let healthRange = waveEnemies[i].hp[1] - waveEnemies[i].hp[0];
     let enemySpawns = waveEnemies[i].count[0] + floor(random() * (waveEnemies[i].count[1] - waveEnemies[i].count[0]));
 
@@ -134,14 +131,12 @@ function spawnWaveEnemies(onWave = waves) {
     if (typeof(waveEnemies[i].type) == "object") { // Is a randomized enemy encounter
       enemyType = waveEnemies[i].type[
         floor(waveEnemies[i].type.length * random())
-      ] 
+      ];
     } else { // Is a pre-defined enemy counter
       enemyType = waveEnemies[i].type;
     } 
 
     for (let j = 0; j < enemySpawns; j++) {
-      print(`Count ${j}`);
-
       let spawnX = random() * width;
       let spawnY = random() * height;
 
@@ -190,7 +185,7 @@ function draw() {
   // Spawn playerBullets
   if (isShooting && !noShoot) {
     if (millis() - lastSpawnTime > shootingSpdFactor * 1000.0) {
-      playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y));
+      playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y, 12.5));
       lastSpawnTime = millis();
     }
   }
@@ -235,8 +230,8 @@ function gotoNextWave() {
   waves++;
   print(waves);
 
-  // spawnEnemies();
-  spawnWaveEnemies();
+  spawnRandomEnemies();
+  // spawnWaveEnemies();
 }
 
 function displayText() {
