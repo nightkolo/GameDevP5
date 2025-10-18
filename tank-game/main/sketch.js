@@ -31,14 +31,16 @@ let shootingSpdFactor = 0.045;
 
 function handleEnemyBullet(b) {
   if (!b.alive) {
-    removeBullet(b);
+    removeObject(playerBullets, b);
+    // removeBullet(b);
   }
   
   if (TankMath.circleCollision(b.x, b.y, b.size / 2.0, p.x, p.y, p.size / 2.0)) {
     // TODO if player is invincinble, make bullets not splice
     
     p.hit();
-    removeBullet(b);
+    removeObject(playerBullets, b);
+    // removeBullet(b);
   }
 
   b.update();
@@ -55,17 +57,13 @@ function handlePlayerBullet(b) {
       item.hit();
 
       if (item.isCollected()){
-        const index = items.indexOf(item);
-        if (index > -1) {
-          items.splice(index, 1);
-        }
+        removeObject(items, item);
       }
 
       removeBullet = true
     }
   })
  
-
   // Enemy detection
   enemies.forEach((e) => {
     if (
@@ -90,17 +88,13 @@ function handlePlayerBullet(b) {
           enemyBullets.push(new Bullet(e.x, e.y, 1, -1, spd, size));
         }
 
-        const index = enemies.indexOf(e);
-        if (index > -1) {
-          enemies.splice(index, 1);
-
-          score += scoreGained;
-        }
+        removeObject(enemies, e);
+        score += scoreGained;
       }
 
       if (e.type == Game.EnemyTypes.REFLECTOR) {
-        b.dirX *= -1;
-        b.dirY *= -1;
+        // TODO make Reflector-reflected bullet grant 2 hitpoints
+        b.reflect()
       } else {
         removeBullet = true;
       }
@@ -181,7 +175,7 @@ function setup() {
 
   p = new Player();
 
-  idrop = new Item(width/2, height/2, Game.Items.EXTRA_HP, p);
+  idrop = new Item(width/2, height/2, Game.Items.TWO_AXIS_SHOOTING, p);
 
   items.push(idrop);
 
@@ -203,10 +197,10 @@ function draw() {
   frameRate(60);
   rectMode(CENTER);
 
-  items = items.filter((itemdrop) => {
-    itemdrop.update();
-    itemdrop.show();
-    return !itemdrop.collected;
+  items = items.filter((i) => {
+    i.update();
+    i.show();
+    return !i.collected && !TankMath.offScreen(i.x, i.y, canSize.x, canSize.y);
   })
 
   if (enemiesDefeated()) {
@@ -216,7 +210,12 @@ function draw() {
   // Spawn playerBullets
   if (isShooting && !noShoot) {
     if (millis() - lastSpawnTime > shootingSpdFactor * 1000.0) {
-      playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y, 12.5));
+      let size = 12.5;
+
+      playerBullets.push(new Bullet(p.x, p.y, curBulletDir.x, curBulletDir.y, size));
+      if (p.two_axis_shooting) {
+        playerBullets.push(new Bullet(p.x, p.y, -curBulletDir.x, -curBulletDir.y, size));
+      }
       lastSpawnTime = millis();
     }
   }
@@ -245,16 +244,17 @@ function draw() {
   displayText();
 }
 
-function removeBullet(b){
-  const index = enemyBullets.indexOf(b);
-  if (enemyBullets.indexOf(b) > -1) {
-    enemyBullets.splice(index, 1);
+function removeObject(objs, obj){
+  const index = objs.indexOf(obj);
+  if (index > -1) {
+    objs.splice(index, 1);
   }
 }
 
 function enemiesDefeated() {
   return enemies.length == 0 && !gameOver;
 }
+
 
 function gotoNextWave() {
   waves++;

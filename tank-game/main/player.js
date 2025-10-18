@@ -13,9 +13,10 @@ class Player {
     this.invincinble = false;
     this.iframeTime = 1.0;
 
+    // Items
     this.two_axis_shooting = false;
   }
-  getItem(item, itemCooldown = 5.0){
+  getItem(item, itemCooldown = 20.0){
     switch (item) {
       case Game.Items.EXTRA_HP:
         if (this.lives > 1) {
@@ -25,11 +26,9 @@ class Player {
           this.lives += 2;
           this.newLives += 2;
         }
-        print(this.lives);
         break;
       case Game.Items.TWO_AXIS_SHOOTING:
         this.two_axis_shooting = true;
-        print(this.two_axis_shooting);
         break;
     }
 
@@ -41,7 +40,6 @@ class Player {
     switch (item) {
       case Game.Items.TWO_AXIS_SHOOTING:
         this.two_axis_shooting = false;
-        print(this.two_axis_shooting);
         break;
     }
   }

@@ -106,10 +106,10 @@ class Enemy {
     }
     return 80.0 + this.health * 5.0;
   }
-  hit(hitX = 0, hitY = 0) {
+  hit(hitX = 0, hitY = 0, hitpoint = 1) {
     // if (!this.hasSpawned) return;
 
-    this.health--;
+    this.health -= hitpoint;
     this.knockback(hitX, hitY);
   }
   knockback(hitX, hitY) {
